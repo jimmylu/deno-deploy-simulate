@@ -2,7 +2,32 @@
 name = "bundle"
 version = "0.1.0"
 edition = "2021"
-
+license = "MIT"
+resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+swc_common = { version = "9.2.0", features = ["tty-emitter", "sourcemap"] }
+swc_ecma_codegen = "11.0.0"
+swc_ecma_parser = "12.0.0"
+swc_ecma_transforms_base = "13.0.0"
+swc_ecma_transforms_typescript = "15.0.0"
+swc_ecma_transforms_react = "15.0.0"
+swc_bundler = "17.0.0"
+swc_ecma_ast = "9.0.0"
+swc_ecma_loader = "9.0.0"
+swc_atoms = "5.0.0"
+swc_ecma_transforms = "17.0.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+anyhow = "1.0.95"
+lazy_static = "1.5.0"
+sha = "1.0.3"
+regex = "1.11.1"
+colored = "3.0.0"
+path-absolutize = "3.1.1"
+url = "2.5.4"
+v8 = { version = "137.1.0", default-features = false }
+base64 = "0.22.1"
+ureq = "3.0.11"
+dirs = "6.0.0"
