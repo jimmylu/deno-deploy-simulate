@@ -1,4 +1,7 @@
 [workspace]
-members = ["bundle"]
+members = ["bundle", "dino"]
 
 resolver = "2"
+
+[workspace.dependencies]
+bundle = { path = "bundle" }

@@ -1,0 +1,12 @@
+async function hello(req: Request): Response {
+    print(`request: ${JSON.stringify(req)}`);
+  return {
+    headers: {
+      "content-type": "text/plain",
+    },
+    status: 200,
+    body: JSON.stringify(req),
+  };
+}
+
+export { hello };
