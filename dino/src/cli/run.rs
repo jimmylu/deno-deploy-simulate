@@ -3,9 +3,9 @@ use std::{collections::HashMap, fs};
 use clap::Parser;
 
 use crate::{
-    engine::{JsWorker, Request},
-    utils::build_project,
     CmdExecutor,
+    engine::{JsWorker, Req},
+    utils::build_project,
 };
 
 #[derive(Debug, Parser)]
@@ -18,7 +18,7 @@ impl CmdExecutor for RunOpts {
         println!("content: {}", content);
         let worker = JsWorker::try_new(&content)?;
 
-        let req = Request::builder()
+        let req = Req::builder()
             .method("GET".to_string())
             .url("https://www.baidu.com".to_string())
             .headers(HashMap::from([(

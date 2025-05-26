@@ -1,7 +1,7 @@
 use anyhow::Result;
 // use glob::glob;
-use glob::glob_with;
 use glob::MatchOptions;
+use glob::glob_with;
 fn main() -> Result<()> {
     //print all rs files in src/ directory
     // let paths = glob("src/**/*.rs")?;

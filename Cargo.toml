@@ -1,7 +1,8 @@
 [workspace]
-members = ["bundle", "dino"]
+members = ["bundle", "dino", "dino-macro"]
 
 resolver = "2"
 
 [workspace.dependencies]
 bundle = { path = "bundle" }
+dino-macro = { path = "dino-macro" }

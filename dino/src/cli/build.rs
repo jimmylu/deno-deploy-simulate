@@ -2,7 +2,7 @@ use std::env;
 
 use clap::Parser;
 
-use crate::{utils::build_project, CmdExecutor};
+use crate::{CmdExecutor, utils::build_project};
 
 #[derive(Debug, Parser)]
 pub struct BuildOpts {}

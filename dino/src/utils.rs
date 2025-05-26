@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use bundle::run_bundle;
-use glob::{glob, GlobError};
+use glob::{GlobError, glob};
 use std::{
     collections::BTreeSet,
     fs::{self, File},

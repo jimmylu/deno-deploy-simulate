@@ -5,10 +5,10 @@ use std::{
 };
 
 use crate::{
-    bundle::transpilers::{Jsx, TypeScript, Wasm},
     ModuleLoader, ModulePath, ModuleSource,
+    bundle::transpilers::{Jsx, TypeScript, Wasm},
 };
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use colored::Colorize as _;
 use lazy_static::lazy_static;
 use path_absolutize::Absolutize;

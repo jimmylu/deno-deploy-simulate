@@ -15,21 +15,21 @@ use swc_bundler::Load;
 use swc_bundler::ModuleData;
 use swc_bundler::ModuleRecord;
 use swc_bundler::Resolve;
-use swc_common::errors::ColorConfig;
-use swc_common::errors::Handler;
-use swc_common::source_map::SourceMap;
-use swc_common::sync::Lrc;
 use swc_common::FileName;
 use swc_common::FilePathMapping;
 use swc_common::Globals;
 use swc_common::Span;
+use swc_common::errors::ColorConfig;
+use swc_common::errors::Handler;
+use swc_common::source_map::SourceMap;
+use swc_common::sync::Lrc;
 use swc_ecma_ast::*;
-use swc_ecma_codegen::text_writer::JsWriter;
 use swc_ecma_codegen::Emitter;
+use swc_ecma_codegen::text_writer::JsWriter;
 use swc_ecma_loader::resolve::Resolution;
-use swc_ecma_parser::parse_file_as_module;
 use swc_ecma_parser::EsSyntax;
 use swc_ecma_parser::Syntax;
+use swc_ecma_parser::parse_file_as_module;
 
 #[derive(Debug)]
 pub struct Options {

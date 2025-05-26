@@ -20,6 +20,9 @@ mod tests {
         let entry = "fixtures/main.ts";
         let ret = run_bundle(entry, &Default::default()).unwrap();
 
-        assert_eq!(ret, "(function(){async function execute(name){console.log(\"Executing lib.\");return`Hello ${name}!`;}async function main(){console.log(\"Executing main.\");console.log(await execute(\"world\"));}return{default:main};})();");
+        assert_eq!(
+            ret,
+            "(function(){async function execute(name){console.log(\"Executing lib.\");return`Hello ${name}!`;}async function main(){console.log(\"Executing main.\");console.log(await execute(\"world\"));}return{default:main};})();"
+        );
     }
 }

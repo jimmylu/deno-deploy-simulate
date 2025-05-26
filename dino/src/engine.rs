@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use rquickjs::{Context, FromJs, Function, IntoJs, Object, Promise, Runtime, Value};
+use dino_macro::{FromJs, IntoJs};
+use rquickjs::{Context, Function, Object, Promise, Runtime};
 use typed_builder::TypedBuilder;
 
 #[allow(unused)]
@@ -10,8 +11,8 @@ pub struct JsWorker {
     ctx: Context,
 }
 
-#[derive(Debug, TypedBuilder)]
-pub struct Request {
+#[derive(Debug, TypedBuilder, IntoJs)]
+pub struct Req {
     #[builder(setter(into))]
     pub method: String,
     #[builder(setter(into))]
@@ -22,40 +23,39 @@ pub struct Request {
 }
 
 #[allow(unused)]
-#[derive(Debug)]
-pub struct Response {
+#[derive(Debug, FromJs)]
+pub struct Res {
     pub body: Option<String>,
     pub headers: HashMap<String, String>,
     pub status: u16,
 }
 
-impl<'js> IntoJs<'js> for Request {
-    fn into_js(self, ctx: &rquickjs::Ctx<'js>) -> rquickjs::Result<rquickjs::Value<'js>> {
-        let obj = Object::new(ctx.clone())?;
-        obj.set("method", self.method.into_js(ctx)?)?;
-        obj.set("url", self.url.into_js(ctx)?)?;
-        obj.set("headers", self.headers.into_js(ctx)?)?;
-        obj.set("body", self.body.into_js(ctx)?)?;
+// impl<'js> IntoJs<'js> for Request {
+//     fn into_js(self, ctx: &rquickjs::Ctx<'js>) -> rquickjs::Result<rquickjs::Value<'js>> {
+//         let obj = Object::new(ctx.clone())?;
+//         obj.set("method", self.method.into_js(ctx)?)?;
+//         obj.set("url", self.url.into_js(ctx)?)?;
+//         obj.set("headers", self.headers.into_js(ctx)?)?;
+//         obj.set("body", self.body.into_js(ctx)?)?;
 
-        Ok(obj.into())
-    }
-}
+//         Ok(obj.into())
+//     }
+// }
 
-impl<'js> FromJs<'js> for Response {
-    fn from_js(_ctx: &rquickjs::Ctx<'js>, value: Value<'js>) -> rquickjs::Result<Self> {
-        let obj = value.into_object().unwrap();
-        println!("obj: {:?}", obj);
-        let body: Option<String> = obj.get("body")?;
-        let headers: HashMap<String, String> = obj.get("headers")?;
-        let status: u16 = obj.get("status")?;
+// impl<'js> FromJs<'js> for Response {
+//     fn from_js(_ctx: &rquickjs::Ctx<'js>, value: Value<'js>) -> rquickjs::Result<Self> {
+//         let obj = value.into_object().unwrap();
+//         let body: Option<String> = obj.get("body")?;
+//         let headers: HashMap<String, String> = obj.get("headers")?;
+//         let status: u16 = obj.get("status")?;
 
-        Ok(Self {
-            body,
-            headers,
-            status,
-        })
-    }
-}
+//         Ok(Self {
+//             body,
+//             headers,
+//             status,
+//         })
+//     }
+// }
 fn print(msg: String) {
     println!("{}", msg);
 }
@@ -81,7 +81,7 @@ impl JsWorker {
         Ok(Self { rt, ctx })
     }
 
-    pub fn run(&self, name: &str, req: Request) -> anyhow::Result<Response> {
+    pub fn run(&self, name: &str, req: Req) -> anyhow::Result<Res> {
         // self.ctx.with(|ctx| {
         //     ctx.eval_promise(code)?.finish::<()>()?;
 
@@ -111,7 +111,7 @@ mod tests {
            (function(){async function hello(req){print(`request: ${req}`);return{headers:{"content-type":"text/plain"},status:200,body:"hello world"};}return{hello:hello};})();
         "#;
         let worker = JsWorker::try_new(code)?;
-        let req = Request::builder()
+        let req = Req::builder()
             .method("GET".to_string())
             .url("https://www.baidu.com".to_string())
             .headers(HashMap::from([(
