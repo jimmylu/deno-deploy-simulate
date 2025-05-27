@@ -17,6 +17,7 @@ pub struct Req {
     pub method: String,
     #[builder(setter(into))]
     pub url: String,
+    #[builder(default)]
     pub headers: HashMap<String, String>,
     #[builder(default, setter(strip_option))]
     pub body: Option<String>,

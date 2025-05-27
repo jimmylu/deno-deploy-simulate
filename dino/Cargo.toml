@@ -21,3 +21,4 @@ typed-builder = "0.21.0"
 
 bundle = { workspace = true }
 dino-macro = { workspace = true }
+dino-server = { workspace = true }
