@@ -1,3 +1,5 @@
+use std::{fs, path::Path};
+
 use crate::ProjectRoutes;
 use anyhow::Result;
 use axum::http::Method;
@@ -16,6 +18,14 @@ pub struct ProjectRoute {
     #[serde(deserialize_with = "deserialize_method")]
     pub method: Method,
     pub handler: String,
+}
+
+impl ProjectConfig {
+    pub fn load(filename: impl AsRef<Path>) -> Result<Self> {
+        let content = fs::read_to_string(filename)?;
+        let config = serde_yaml::from_str(&content)?;
+        Ok(config)
+    }
 }
 
 // 自定义方法的反序列化 fn<'de, D>(D) -> Result<T, D::Error> where D: Deserializer<'de>

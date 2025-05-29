@@ -1,7 +1,5 @@
 use anyhow::Result;
-use axum::http::Method;
-use dashmap::DashMap;
-use dino_server::{ProjectConfig, SwappableAppRouter, start_server};
+use dino_server::{ProjectConfig, SwappableAppRouter, TenentRouter, start_server};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{
     Layer as _, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt as _,
@@ -17,21 +15,28 @@ async fn main() -> Result<()> {
 
     println!("router: {:?}", config.routes);
 
-    let router = DashMap::new();
-    router.insert(
-        "localhost".to_string(),
-        SwappableAppRouter::try_new(config.routes)?,
-    );
+    let code = r#"
+    (function(){
+        async function hello(req){
+            print(`user id: ${req.params.id}`);
+            return {
+                status:200,
+                headers:{
+                    "content-type":"application/json"
+                },
+                body: JSON.stringify(req),
+            };
+        }
+        return{hello:hello};
+    })();
+    "#;
+    let router = SwappableAppRouter::try_new(code, config.routes)?;
 
-    println!(
-        "match: {:?}",
-        router
-            .get("localhost")
-            .unwrap()
-            .load()
-            .match_it(Method::GET, "/api/hello/123")
-    );
+    start_server(
+        8888,
+        vec![TenentRouter::new("localhost".to_string(), router)],
+    )
+    .await?;
 
-    start_server(8888, router).await?;
     Ok(())
 }

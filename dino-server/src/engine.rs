@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
+use axum::{body::Body, response::Response};
 use dino_macro::{FromJs, IntoJs};
 use rquickjs::{Context, Function, Object, Promise, Runtime};
 use typed_builder::TypedBuilder;
@@ -18,6 +19,10 @@ pub struct Req {
     #[builder(setter(into))]
     pub url: String,
     #[builder(default)]
+    pub query: HashMap<String, String>,
+    #[builder(default)]
+    pub params: HashMap<String, String>,
+    #[builder(default)]
     pub headers: HashMap<String, String>,
     #[builder(default, setter(strip_option))]
     pub body: Option<String>,
@@ -31,32 +36,6 @@ pub struct Res {
     pub status: u16,
 }
 
-// impl<'js> IntoJs<'js> for Request {
-//     fn into_js(self, ctx: &rquickjs::Ctx<'js>) -> rquickjs::Result<rquickjs::Value<'js>> {
-//         let obj = Object::new(ctx.clone())?;
-//         obj.set("method", self.method.into_js(ctx)?)?;
-//         obj.set("url", self.url.into_js(ctx)?)?;
-//         obj.set("headers", self.headers.into_js(ctx)?)?;
-//         obj.set("body", self.body.into_js(ctx)?)?;
-
-//         Ok(obj.into())
-//     }
-// }
-
-// impl<'js> FromJs<'js> for Response {
-//     fn from_js(_ctx: &rquickjs::Ctx<'js>, value: Value<'js>) -> rquickjs::Result<Self> {
-//         let obj = value.into_object().unwrap();
-//         let body: Option<String> = obj.get("body")?;
-//         let headers: HashMap<String, String> = obj.get("headers")?;
-//         let status: u16 = obj.get("status")?;
-
-//         Ok(Self {
-//             body,
-//             headers,
-//             status,
-//         })
-//     }
-// }
 fn print(msg: String) {
     println!("{}", msg);
 }
@@ -99,12 +78,28 @@ impl JsWorker {
     }
 }
 
+impl From<Res> for Response {
+    fn from(res: Res) -> Self {
+        let mut builder = Response::builder().status(res.status);
+        for (k, v) in res.headers {
+            builder = builder.header(k, v);
+        }
+        if let Some(body) = res.body {
+            builder.body(body.into()).unwrap()
+        } else {
+            builder.body(Body::empty()).unwrap()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::body::to_bytes;
+    use axum::http::StatusCode;
 
-    #[test]
-    fn js_worker_should_run() -> anyhow::Result<()> {
+    #[tokio::test]
+    async fn js_worker_should_run() -> anyhow::Result<()> {
         // let code = r#"
         // (function(){async function hello(){print("hello world");return"hello";}return{hello:hello};})();
         // "#;
@@ -120,8 +115,15 @@ mod tests {
                 "text/plain".to_string(),
             )]))
             .build();
-        let resp = worker.run("hello", req)?;
-        println!("{:?}", resp);
+        let resp: Response = worker.run("hello", req)?.into();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(resp.headers().get("content-type").unwrap(), "text/plain");
+
+        // 获取 body 字符串
+        let (_parts, body): (_, Body) = resp.into_parts();
+        let body_bytes = to_bytes(body, usize::MAX).await?;
+        let body_string = String::from_utf8(body_bytes.to_vec())?;
+        assert_eq!(body_string, "hello world");
 
         Ok(())
     }

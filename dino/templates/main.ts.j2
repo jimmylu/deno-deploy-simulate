@@ -1,5 +1,5 @@
 async function hello(req: Request): Response {
-    print(`request: ${JSON.stringify(req)}`);
+    print(`request: ${JSON.stringify(req.url)}`);
   return {
     headers: {
       "content-type": "text/plain",

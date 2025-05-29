@@ -2,17 +2,22 @@ use anyhow::Result;
 use arc_swap::ArcSwap;
 use axum::http::Method;
 use matchit::{Match, Router};
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 use crate::{ProjectRoutes, error::AppError};
 
 #[derive(Clone)]
 pub struct SwappableAppRouter {
-    pub routers: Arc<ArcSwap<Router<MethodRoute>>>,
+    pub routers: Arc<ArcSwap<AppRouterInner>>,
+}
+
+pub struct AppRouterInner {
+    pub code: String,
+    pub router: Router<MethodRoute>,
 }
 
 #[derive(Clone)]
-pub struct AppRouter(Arc<Router<MethodRoute>>);
+pub struct AppRouter(Arc<AppRouterInner>);
 
 #[derive(Debug, Default, Clone)]
 pub struct MethodRoute {
@@ -28,10 +33,11 @@ pub struct MethodRoute {
 }
 
 impl SwappableAppRouter {
-    pub fn try_new(routes: ProjectRoutes) -> Result<Self> {
+    pub fn try_new(code: impl Into<String>, routes: ProjectRoutes) -> Result<Self> {
         let router = Self::get_router(routes)?;
+        let inner = AppRouterInner::new(code, router)?;
         Ok(Self {
-            routers: Arc::new(ArcSwap::from_pointee(router)),
+            routers: Arc::new(ArcSwap::from_pointee(inner)),
         })
     }
 
@@ -62,9 +68,10 @@ impl SwappableAppRouter {
         AppRouter(self.routers.load_full())
     }
 
-    pub fn swap(&self, routes: ProjectRoutes) -> Result<()> {
+    pub fn swap(&self, code: impl Into<String>, routes: ProjectRoutes) -> Result<()> {
         let router = Self::get_router(routes)?;
-        self.routers.store(Arc::new(router));
+        let inner = AppRouterInner::new(code, router)?;
+        self.routers.store(Arc::new(inner));
         Ok(())
     }
 }
@@ -80,7 +87,7 @@ impl AppRouter {
         'p: 'm,
     {
         println!("match_it: {:?}, {:?}", method, path);
-        let Ok(ret) = self.0.at(path) else {
+        let Ok(ret) = self.router.at(path) else {
             return Err(AppError::RoutePathNotFound(path.to_string()));
         };
         let s = match method {
@@ -100,6 +107,22 @@ impl AppRouter {
         Ok(Match {
             value: s,
             params: ret.params,
+        })
+    }
+}
+
+impl Deref for AppRouter {
+    type Target = AppRouterInner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl AppRouterInner {
+    pub fn new(code: impl Into<String>, router: Router<MethodRoute>) -> Result<Self> {
+        Ok(Self {
+            code: code.into(),
+            router,
         })
     }
 }
