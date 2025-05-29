@@ -63,9 +63,22 @@ async fn async_watch(p: impl AsRef<Path>, router: SwappableAppRouter) -> Result<
                 for event in events {
                     let ext = event.path.extension().unwrap_or_default();
                     if event.path.ends_with("config.yml") || ext == "ts" {
-                        info!("File changed: {:?}", event.path.display());
-                        need_swap = true;
-                        break;
+                        match event.kind {
+                            notify_debouncer_mini::DebouncedEventKind::Any => {
+                                info!("File changed (stable): {:?}", event.path.display());
+                                need_swap = true;
+                            }
+                            notify_debouncer_mini::DebouncedEventKind::AnyContinuous => {
+                                info!("File changing (continuous): {:?}", event.path.display());
+                                // 对于连续变化的文件，我们可以选择等待或者也触发重新构建
+                                // 这里选择也触发重新构建，但可以根据需要调整
+                                need_swap = false;
+                            }
+                            _ => unreachable!(),
+                        }
+                        if need_swap {
+                            break;
+                        }
                     }
                 }
                 if need_swap {
